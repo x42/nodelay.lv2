@@ -22,16 +22,19 @@
 		lv2:index 0 ;
 		lv2:symbol "delay" ;
 		lv2:name "delay (samples)";
-		lv2:default 0.0 ;
-		lv2:minimum 0.0 ;
+		lv2:default 0 ;
+		lv2:minimum 0 ;
 		lv2:maximum 192000 ;
+		lv2:portProperty lv2:integer;
 	] , [
 		a lv2:OutputPort,
 			lv2:ControlPort ;
 		lv2:name "latency (samples)" ;
 		lv2:index 1 ;
 		lv2:symbol "latency" ;
-		lv2:portProperty lv2:reportsLatency ;
+		lv2:minimum 0 ;
+		lv2:maximum 192000 ;
+		lv2:portProperty lv2:reportsLatency, lv2:integer;
 	] , [
 		a lv2:AudioPort ,
 			lv2:InputPort ;
