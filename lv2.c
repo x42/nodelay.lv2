@@ -21,9 +21,9 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
-#include <string.h>
 
 #include "lv2/lv2plug.in/ns/lv2core/lv2.h"
 
@@ -84,31 +84,53 @@ connect_port(LV2_Handle instance,
 	}
 }
 
+#define FADE_LEN (8)
+#define INCREMENT_PTRS \
+		self->r_ptr = (self->r_ptr + 1) % MAXDELAY; \
+		self->w_ptr = (self->w_ptr + 1) % MAXDELAY;
+
 static void
 run(LV2_Handle instance, uint32_t n_samples)
 {
 	NoDelay* self = (NoDelay*)instance;
 
-	uint32_t pos;
+	uint32_t pos = 0;
 	const float  delay = *(self->delay);
 	const float* const input = self->input;
 	float* const output = self->output;
 
+	assert(n_samples > 2 * FADE_LEN);
+
 	if (self->c_dly != rint(delay)) {
+		// fade out
+		for (; pos < FADE_LEN; pos++) {
+			const float gain = (float)(FADE_LEN - pos) / (float)FADE_LEN;
+			self->buffer[ self->w_ptr ] = input[pos];
+			output[pos] = self->buffer[ self->r_ptr ] * gain;
+			INCREMENT_PTRS;
+		}
+
 		self->r_ptr += self->c_dly - rintf(delay);
 		if (self->r_ptr < 0) {
 			self->r_ptr -= MAXDELAY * floor(self->r_ptr / (float)MAXDELAY);
 		}
 		self->r_ptr = self->r_ptr % MAXDELAY;
 		self->c_dly = rint(delay);
+
+		// fade in
+		for (; pos < 2 * FADE_LEN; pos++) {
+			const float gain = (float)(pos - FADE_LEN) / (float)FADE_LEN;
+			self->buffer[ self->w_ptr ] = input[pos];
+			output[pos] = self->buffer[ self->r_ptr ] * gain;
+			INCREMENT_PTRS;
+		}
 	}
 	*(self->latency) = (float)self->c_dly;
 
-	for (pos = 0; pos < n_samples; pos++) {
+	for (; pos < n_samples; pos++) {
 		self->buffer[ self->w_ptr ] = input[pos];
 		output[pos] = self->buffer[ self->r_ptr ];
-		self->r_ptr = (self->r_ptr + 1) % MAXDELAY;
-		self->w_ptr = (self->w_ptr + 1) % MAXDELAY;
+		INCREMENT_PTRS;
 	}
 }
 
