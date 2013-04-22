@@ -21,7 +21,6 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -30,6 +29,7 @@
 #define NDL_URI "http://gareus.org/oss/lv2/nodelay"
 
 #define MAXDELAY (192001)
+#define FADE_LEN (16)
 
 typedef enum {
 	NDL_DELAY    = 0,
@@ -84,7 +84,6 @@ connect_port(LV2_Handle instance,
 	}
 }
 
-#define FADE_LEN (8)
 #define INCREMENT_PTRS \
 		self->r_ptr = (self->r_ptr + 1) % MAXDELAY; \
 		self->w_ptr = (self->w_ptr + 1) % MAXDELAY;
@@ -99,17 +98,18 @@ run(LV2_Handle instance, uint32_t n_samples)
 	const float* const input = self->input;
 	float* const output = self->output;
 
-	assert(n_samples > 2 * FADE_LEN);
-
 	if (self->c_dly != rint(delay)) {
+		const int fade_len = (n_samples >= FADE_LEN) ? FADE_LEN : n_samples / 2;
+
 		// fade out
-		for (; pos < FADE_LEN; pos++) {
-			const float gain = (float)(FADE_LEN - pos) / (float)FADE_LEN;
+		for (; pos < fade_len; pos++) {
+			const float gain = (float)(fade_len - pos) / (float)fade_len;
 			self->buffer[ self->w_ptr ] = input[pos];
 			output[pos] = self->buffer[ self->r_ptr ] * gain;
 			INCREMENT_PTRS;
 		}
 
+		// update read pointer
 		self->r_ptr += self->c_dly - rintf(delay);
 		if (self->r_ptr < 0) {
 			self->r_ptr -= MAXDELAY * floor(self->r_ptr / (float)MAXDELAY);
@@ -118,8 +118,8 @@ run(LV2_Handle instance, uint32_t n_samples)
 		self->c_dly = rint(delay);
 
 		// fade in
-		for (; pos < 2 * FADE_LEN; pos++) {
-			const float gain = (float)(pos - FADE_LEN) / (float)FADE_LEN;
+		for (; pos < 2 * fade_len; pos++) {
+			const float gain = (float)(pos - fade_len) / (float)fade_len;
 			self->buffer[ self->w_ptr ] = input[pos];
 			output[pos] = self->buffer[ self->r_ptr ] * gain;
 			INCREMENT_PTRS;
