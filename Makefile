@@ -28,7 +28,7 @@ endif
 # build target definitions
 default: all
 
-all: manifest.ttl $(LV2NAME)$(LIB_EXT)
+all: manifest.ttl nodelay.ttl $(LV2NAME)$(LIB_EXT)
 
 manifest.ttl: manifest.ttl.in
 	sed "s/@LV2NAME@/$(LV2NAME)/;s/@LIB_EXT@/$(LIB_EXT)/" \

@@ -33,13 +33,15 @@
 
 typedef enum {
 	NDL_DELAY    = 0,
-	NDL_LATENCY  = 1,
-	NDL_INPUT    = 2,
-	NDL_OUTPUT   = 3
+	NDL_REPORT   = 1,
+	NDL_LATENCY  = 2,
+	NDL_INPUT    = 3,
+	NDL_OUTPUT   = 4
 } PortIndex;
 
 typedef struct {
 	float* delay;
+	float* report_latency;
 	float* latency;
 	float* input;
 	float* output;
@@ -71,6 +73,9 @@ connect_port(LV2_Handle instance,
 	switch ((PortIndex)port) {
 	case NDL_DELAY:
 		self->delay = data;
+		break;
+	case NDL_REPORT:
+		self->report_latency = data;
 		break;
 	case NDL_LATENCY:
 		self->latency = data;
@@ -125,7 +130,11 @@ run(LV2_Handle instance, uint32_t n_samples)
 			INCREMENT_PTRS;
 		}
 	}
-	*(self->latency) = (float)self->c_dly;
+	if (*self->report_latency) {
+		*(self->latency) = (float)self->c_dly;
+	} else {
+		*(self->latency) = 0;
+	}
 
 	for (; pos < n_samples; pos++) {
 		self->buffer[ self->w_ptr ] = input[pos];
