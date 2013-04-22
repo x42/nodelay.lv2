@@ -29,7 +29,7 @@
 
 #define NDL_URI "http://gareus.org/oss/lv2/nodelay"
 
-#define MAXDELAY (192000)
+#define MAXDELAY (192001)
 
 typedef enum {
 	NDL_DELAY    = 0,
