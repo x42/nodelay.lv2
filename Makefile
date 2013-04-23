@@ -34,9 +34,9 @@ manifest.ttl: manifest.ttl.in
 	sed "s/@LV2NAME@/$(LV2NAME)/;s/@LIB_EXT@/$(LIB_EXT)/" \
 	  manifest.ttl.in > manifest.ttl
 
-$(LV2NAME)$(LIB_EXT): lv2.c
+$(LV2NAME)$(LIB_EXT): nodelay.c
 	$(CC) $(CFLAGS) \
-	  -o $(LV2NAME)$(LIB_EXT) lv2.c \
+	  -o $(LV2NAME)$(LIB_EXT) nodelay.c \
 	  $(LDFLAGS) $(LOADLIBES) -shared -Wl,-Bstatic -Wl,-Bdynamic
 
 # install/uninstall/clean target definitions
