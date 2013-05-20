@@ -11,7 +11,7 @@
 	foaf:homepage <http://gareus.org/> .
 
 <http://gareus.org/oss/lv2/nodelay>
-	a lv2:Plugin;
+	a lv2:Plugin, doap:Project;
 	doap:license <http://usefulinc.com/doap/licenses/gpl> ;
 	doap:maintainer <http://gareus.org/rgareus#me> ;
 	doap:name "No Delay Line";
