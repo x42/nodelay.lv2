@@ -57,4 +57,6 @@
 		lv2:index 4 ;
 		lv2:symbol "out" ;
 		lv2:name "Out"
-	] .
+	] ;
+	rdfs:comment "Artificial Latency - nodelay is a simple audio delay-line that can report its delay as latency. The effect should be transparent when used with a LV2 host that implements latency compensation." ;
+	.
