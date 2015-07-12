@@ -4,3 +4,14 @@ nodelay -- LV2 test & instrumentation tool
 nodelay is a simple audio delay-line that also reports its delay as latency.
 The effect should be transparent when used with LV2 hosts that implement
 latency compensation.
+
+usage
+-----
+
+Currently, nodelay.lv2 is known to work in
+[Jalv](http://drobilla.net/software/jalv/) 1.4.6. and in [Ardour] 4.0 (http://ardour.org/)
+
+```bash
+# Test in jalv LV2 host
+jalv.gtk http://gareus.org/oss/lv2/nodelay
+```
