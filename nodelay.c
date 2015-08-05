@@ -92,13 +92,20 @@ connect_port(LV2_Handle instance,
 		self->r_ptr = (self->r_ptr + 1) % MAXDELAY; \
 		self->w_ptr = (self->w_ptr + 1) % MAXDELAY;
 
+#ifndef MAX
+#define MAX(A,B) ( (A) > (B) ? (A) : (B) )
+#endif
+#ifndef MIN
+#define MIN(A,B) ( (A) < (B) ? (A) : (B) )
+#endif
+
 static void
 run(LV2_Handle instance, uint32_t n_samples)
 {
 	NoDelay* self = (NoDelay*)instance;
 
 	uint32_t pos = 0;
-	const float  delay = *(self->delay);
+	const float  delay = MAX(0, MIN((MAXDELAY - 1), *(self->delay)));
 	const float* const input = self->input;
 	float* const output = self->output;
 
