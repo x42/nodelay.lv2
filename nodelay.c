@@ -105,9 +105,13 @@ run(LV2_Handle instance, uint32_t n_samples)
 	NoDelay* self = (NoDelay*)instance;
 
 	uint32_t pos = 0;
-	const float  delay = MAX(0, MIN((MAXDELAY - 1), *(self->delay)));
+	float delay = MAX(0, MIN((MAXDELAY - 1), *(self->delay)));
 	const float* const input = self->input;
 	float* const output = self->output;
+
+	if (*self->report_latency > 1.5) {
+		delay = 0;
+	}
 
 	if (self->c_dly != rint(delay)) {
 		const int fade_len = (n_samples >= FADE_LEN) ? FADE_LEN : n_samples / 2;
@@ -136,7 +140,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 			INCREMENT_PTRS;
 		}
 	}
-	if (*self->report_latency) {
+	if (*self->report_latency > 0.5) {
 		*(self->latency) = (float)self->c_dly;
 	} else {
 		*(self->latency) = 0;
