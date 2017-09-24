@@ -105,11 +105,14 @@ run(LV2_Handle instance, uint32_t n_samples)
 	NoDelay* self = (NoDelay*)instance;
 
 	uint32_t pos = 0;
-	float delay = MAX(0, MIN((MAXDELAY - 1), *(self->delay)));
+	const float delay_ctrl = MAX(0, MIN((MAXDELAY - 1), *(self->delay)));
+	int mode = rint (*self->report_latency);
+
+	float delay = delay_ctrl;
 	const float* const input = self->input;
 	float* const output = self->output;
 
-	if (*self->report_latency > 1.5) {
+	if (mode >= 2) {
 		delay = 0;
 	}
 
@@ -140,10 +143,17 @@ run(LV2_Handle instance, uint32_t n_samples)
 			INCREMENT_PTRS;
 		}
 	}
-	if (*self->report_latency > 0.5) {
-		*(self->latency) = (float)self->c_dly;
-	} else {
-		*(self->latency) = 0;
+
+	switch (mode) {
+		case 0:
+			*(self->latency) = 0.f;
+			break;
+		case 2:
+			*(self->latency) = delay_ctrl;
+			break;
+		default:
+			*(self->latency) = (float)self->c_dly;
+			break;
 	}
 
 	for (; pos < n_samples; pos++) {
