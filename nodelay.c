@@ -169,7 +169,7 @@ cleanup(LV2_Handle instance)
 	free(instance);
 }
 
-const void*
+static const void*
 extension_data(const char* uri)
 {
 	return NULL;
