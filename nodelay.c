@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "lv2/lv2plug.in/ns/lv2core/lv2.h"
 
@@ -49,6 +50,10 @@ typedef struct {
 	int c_dly;
 	int w_ptr;
 	int r_ptr;
+
+	/* settings from previous cycle */
+	int p_delay;
+	int p_mode;
 } NoDelay;
 
 static LV2_Handle
@@ -108,43 +113,53 @@ run(LV2_Handle instance, uint32_t n_samples)
 	const float delay_ctrl = MAX(0, MIN((MAXDELAY - 1), *(self->delay)));
 	int mode = rint (*self->report_latency);
 
-	float delay = delay_ctrl;
-	const float* const input = self->input;
-	float* const output = self->output;
+	float const * const input = self->input;
+	float* const output = self->p_mode >= 2 ? NULL : self->output;
+	int delay = self->p_delay;
 
-	if (mode >= 2) {
-		delay = 0;
+	/* First report new latency to host. Only apply the change in the next cycle
+	 * after the host has updated the laency */
+	self->p_mode = mode;
+	self->p_delay = rintf(delay_ctrl);;
+
+	if (!output && self->input != self->output) {
+		memcpy (self->output, self->input, sizeof (float) * n_samples);
 	}
 
-	if (self->c_dly != rint(delay)) {
+	if (self->c_dly != delay) {
 		const int fade_len = (n_samples >= FADE_LEN) ? FADE_LEN : n_samples / 2;
 
-		// fade out
+		/* fade out */
 		for (; pos < fade_len; pos++) {
 			const float gain = (float)(fade_len - pos) / (float)fade_len;
 			self->buffer[ self->w_ptr ] = input[pos];
-			output[pos] = self->buffer[ self->r_ptr ] * gain;
+			if (output) {
+				output[pos] = self->buffer[ self->r_ptr ] * gain;
+			}
 			INCREMENT_PTRS;
 		}
 
-		// update read pointer
-		self->r_ptr += self->c_dly - rintf(delay);
+		/* update read pointer */
+		self->r_ptr += self->c_dly - delay;
 		if (self->r_ptr < 0) {
 			self->r_ptr -= MAXDELAY * floor(self->r_ptr / (float)MAXDELAY);
 		}
 		self->r_ptr = self->r_ptr % MAXDELAY;
-		self->c_dly = rint(delay);
+		self->c_dly = delay;
 
-		// fade in
+		/* fade in */
 		for (; pos < 2 * fade_len; pos++) {
 			const float gain = (float)(pos - fade_len) / (float)fade_len;
 			self->buffer[ self->w_ptr ] = input[pos];
-			output[pos] = self->buffer[ self->r_ptr ] * gain;
+			if (output) {
+				output[pos] = self->buffer[ self->r_ptr ] * gain;
+			}
 			INCREMENT_PTRS;
 		}
 	}
 
 	switch (mode) {
+		case 3:
 		case 0:
 			*(self->latency) = 0.f;
 			break;
@@ -158,7 +173,9 @@ run(LV2_Handle instance, uint32_t n_samples)
 
 	for (; pos < n_samples; pos++) {
 		self->buffer[ self->w_ptr ] = input[pos];
-		output[pos] = self->buffer[ self->r_ptr ];
+		if (output) {
+			output[pos] = self->buffer[ self->r_ptr ];
+		}
 		INCREMENT_PTRS;
 	}
 }
