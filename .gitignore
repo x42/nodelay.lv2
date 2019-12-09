@@ -1,3 +1,6 @@
 /build
-*.swp
 /lv2syms
+*.dSYM
+*.swp
+cscope.*
+tags
