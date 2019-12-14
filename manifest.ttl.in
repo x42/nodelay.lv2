@@ -5,3 +5,8 @@
 	a lv2:Plugin ;
 	lv2:binary <nodelay@LIB_EXT@>  ;
 	rdfs:seeAlso <nodelay.ttl> .
+
+<http://gareus.org/oss/lv2/nodelay#micro>
+	a lv2:Plugin ;
+	lv2:binary <nodelay@LIB_EXT@>  ;
+	rdfs:seeAlso <nodelay.ttl> .
