@@ -28,7 +28,9 @@
 
 #define NDL_URI "http://gareus.org/oss/lv2/nodelay"
 
-#define MAXDELAY (192001)
+// TODO Micro-variant only requires 2^14 samples (64kB) instead of 1MB
+#define DELAY_SIZE (262144) // 2^18
+#define DELAY_MASK (262143)
 #define FADE_LEN (32)
 
 typedef struct {
@@ -38,7 +40,7 @@ typedef struct {
 	float* input;
 	float* output;
 
-	float buffer[MAXDELAY];
+	float buffer[DELAY_SIZE];
 	int   c_dly;
 	int   w_ptr;
 	int   r_ptr;
@@ -109,9 +111,9 @@ connect_port_micro (LV2_Handle instance,
 	}
 }
 
-#define INCREMENT_PTRS                        \
-  self->r_ptr = (self->r_ptr + 1) % MAXDELAY; \
-  self->w_ptr = (self->w_ptr + 1) % MAXDELAY;
+#define INCREMENT_PTRS                          \
+  self->r_ptr = (self->r_ptr + 1) & DELAY_MASK; \
+  self->w_ptr = (self->w_ptr + 1) & DELAY_MASK;
 
 #ifndef MAX
 #  define MAX(A, B) ((A) > (B) ? (A) : (B))
@@ -136,11 +138,7 @@ no_delay (NoDelay* self, uint32_t n_samples)
 static void
 update_read_pointer (NoDelay* self, int new_delay)
 {
-	self->r_ptr += self->c_dly - new_delay;
-	if (self->r_ptr < 0) {
-		self->r_ptr -= MAXDELAY * floor (self->r_ptr / (float)MAXDELAY);
-	}
-	self->r_ptr = self->r_ptr % MAXDELAY;
+	self->r_ptr = (self->r_ptr + DELAY_SIZE + self->c_dly - new_delay) & DELAY_MASK;
 	self->c_dly = new_delay;
 }
 
@@ -207,7 +205,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 {
 	NoDelay* self = (NoDelay*)instance;
 
-	const float delay_ctrl = MAX (0, MIN ((MAXDELAY - 1), *(self->delay)));
+	const float delay_ctrl = MAX (0, MIN (DELAY_MASK, *(self->delay)));
 	int         mode       = rint (*self->report_latency);
 	int         delay      = self->p_delay;
 
@@ -239,7 +237,7 @@ run_micro (LV2_Handle instance, uint32_t n_samples)
 {
 	NoDelay* self = (NoDelay*)instance;
 
-	const int delay_ctrl = MAX (-10000, MIN ((MAXDELAY - 1), rintf (*(self->delay))));
+	const int delay_ctrl = MAX (-10000, MIN (DELAY_MASK, rintf (*(self->delay))));
 	const int delay      = delay_ctrl >= 0 ? delay_ctrl : 0;
 	self->p_mode         = delay_ctrl >= 0 ? 0 : 2;
 
