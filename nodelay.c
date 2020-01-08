@@ -207,14 +207,14 @@ run (LV2_Handle instance, uint32_t n_samples)
 
 	const float delay_ctrl = MAX (0, MIN (DELAY_MASK, *(self->delay)));
 	int         mode       = rint (*self->report_latency);
-	int         delay      = self->p_delay;
+	int         delay      = self->p_mode < 2 ? self->p_delay : 0;
 
 	/* First report new latency to host. Only apply the change in the next cycle
-	 * after the host has updated the laency */
+	 * after the host has updated the latency */
 	self->p_mode  = mode;
 	self->p_delay = rintf (delay_ctrl);
 
-	/* process using p_mode and fade c_dly -> delay */
+	/* process fade c_dly -> delay */
 	process (self, n_samples, delay);
 
 	/* report latency */
@@ -239,9 +239,7 @@ run_micro (LV2_Handle instance, uint32_t n_samples)
 
 	const int delay_ctrl = MAX (-10000, MIN (DELAY_MASK, rintf (*(self->delay))));
 	const int delay      = delay_ctrl >= 0 ? delay_ctrl : 0;
-	self->p_mode         = delay_ctrl >= 0 ? 0 : 2;
 
-	/* process using p_mode */
 	process (self, n_samples, delay);
 
 	/* fade in from previous cycle's fade-out (after a latency change) */
