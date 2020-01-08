@@ -37,7 +37,7 @@
 			lv2:ControlPort ;
 		lv2:index 1 ;
 		lv2:symbol "report_latency" ;
-		lv2:name "Report Latency" ;
+		lv2:name "Operation Mode" ;
 		lv2:default 1 ;
 		lv2:minimum 0 ;
 		lv2:maximum 3;
