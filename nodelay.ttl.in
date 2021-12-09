@@ -126,3 +126,38 @@
 	] ;
 	rdfs:comment "Delayline and Artificial Latency." ;
 	.
+
+<http://gareus.org/oss/lv2/nodelay#mega>
+	a lv2:Plugin, doap:Project, lv2:UtilityPlugin;
+	doap:license <http://usefulinc.com/doap/licenses/gpl> ;
+	doap:maintainer <http://gareus.org/rgareus#me> ;
+	doap:name "Mega Delay Line";
+	@VERSION@
+	lv2:optionalFeature lv2:hardRTCapable, bufsz:coarseBlockLength ;
+	lv2:port [
+		a lv2:InputPort ,
+			lv2:ControlPort ;
+		lv2:index 0 ;
+		lv2:symbol "delay" ;
+		lv2:name "Delay Time";
+		lv2:default 0 ;
+		lv2:minimum 0 ;
+		lv2:maximum 240000 ;
+		lv2:portProperty lv2:integer;
+		lv2:portProperty <http://ardour.org/lv2/ext#inlineMixerControl>;
+		units:unit units:frame;
+	] , [
+		a lv2:AudioPort ,
+			lv2:InputPort ;
+		lv2:index 1 ;
+		lv2:symbol "in" ;
+		lv2:name "In"
+	] , [
+		a lv2:AudioPort ,
+			lv2:OutputPort ;
+		lv2:index 2 ;
+		lv2:symbol "out" ;
+		lv2:name "Out"
+	] ;
+	rdfs:comment "Simple Audio Delayline." ;
+	.

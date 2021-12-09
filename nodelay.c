@@ -28,7 +28,6 @@
 
 #define NDL_URI "http://gareus.org/oss/lv2/nodelay"
 
-// TODO Micro-variant only requires 2^14 samples (64kB) instead of 1MB
 #define DELAY_SIZE (262144) // 2^18
 #define DELAY_MASK (262143)
 #define FADE_LEN (32)
@@ -106,6 +105,26 @@ connect_port_micro (LV2_Handle instance,
 			self->input = data;
 			break;
 		case 3:
+			self->output = data;
+			break;
+	}
+}
+
+static void
+connect_port_mega (LV2_Handle instance,
+                    uint32_t   port,
+                    void*      data)
+{
+	NoDelay* self = (NoDelay*)instance;
+
+	switch (port) {
+		case 0:
+			self->delay = data;
+			break;
+		case 1:
+			self->input = data;
+			break;
+		case 2:
 			self->output = data;
 			break;
 	}
@@ -277,6 +296,15 @@ run_micro (LV2_Handle instance, uint32_t n_samples)
 }
 
 static void
+run_mega (LV2_Handle instance, uint32_t n_samples)
+{
+	NoDelay* self = (NoDelay*)instance;
+
+	const int delay = MAX (0, MIN (DELAY_MASK, rintf (*(self->delay))));
+	process (self, n_samples, delay);
+}
+
+static void
 cleanup (LV2_Handle instance)
 {
 	free (instance);
@@ -310,6 +338,17 @@ static const LV2_Descriptor descriptor1 = {
 	extension_data
 };
 
+static const LV2_Descriptor descriptor2 = {
+	NDL_URI "#mega",
+	instantiate,
+	connect_port_mega,
+	NULL,
+	run_mega,
+	NULL,
+	cleanup,
+	extension_data
+};
+
 #undef LV2_SYMBOL_EXPORT
 #ifdef _WIN32
 #  define LV2_SYMBOL_EXPORT __declspec(dllexport)
@@ -325,6 +364,8 @@ lv2_descriptor (uint32_t index)
 			return &descriptor0;
 		case 1:
 			return &descriptor1;
+		case 2:
+			return &descriptor2;
 		default:
 			return NULL;
 	}
