@@ -62,6 +62,16 @@ instantiate (const LV2_Descriptor*     descriptor,
 }
 
 static void
+reset (LV2_Handle instance)
+{
+	NoDelay* self = (NoDelay*)instance;
+	memset (self->buffer, 0, DELAY_SIZE * sizeof (float));
+	self->c_dly = 0;
+	self->w_ptr = 0;
+	self->r_ptr = 0;
+}
+
+static void
 connect_port (LV2_Handle instance,
               uint32_t   port,
               void*      data)
@@ -344,7 +354,7 @@ static const LV2_Descriptor descriptor2 = {
 	connect_port_mega,
 	NULL,
 	run_mega,
-	NULL,
+	reset,
 	cleanup,
 	extension_data
 };
