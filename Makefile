@@ -1,11 +1,9 @@
 #!/usr/bin/make -f
 PREFIX ?= /usr/local
-CFLAGS ?= $(OPTIMIZATIONS) -Wall
 
 PKG_CONFIG?=pkg-config
 STRIP?=strip
 STRIPFLAGS?=-s
-
 
 nodelay_VERSION?=$(shell git describe --tags HEAD 2>/dev/null | sed 's/-g.*$$//;s/^v//' || echo "LV2")
 
@@ -26,6 +24,7 @@ else
 endif
 
 ###############################################################################
+CFLAGS ?= $(OPTIMIZATIONS) -Wall
 LIB_EXT=.so
 
 LV2DIR ?= $(PREFIX)/lib/lv2
